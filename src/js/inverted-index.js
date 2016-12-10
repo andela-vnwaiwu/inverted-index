@@ -21,7 +21,7 @@ class InvertedIndex {
    * @param {string} text the text to be converted
    * @returns {Array} the result that will be returned after function call
    */
-  convertText(text) {
+  textToArray(text) {
     const result = text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/);
     return result;
   }
@@ -37,7 +37,7 @@ class InvertedIndex {
     for (let i = 0; i < file.length; i += 1) {
       if (file[i].title && file[i].text) {
         const text = `${file[i].title} ${file[i].text}`;
-        const fileDoc = this.convertText(text);
+        const fileDoc = this.textToArray(text);
         fileContent.push(fileDoc);
       }
     }
@@ -50,7 +50,7 @@ class InvertedIndex {
    * @param {Array} file the content of the file
    * @returns {boolean} returns a boolean
    */
-  checkBookData(file) {
+  readFileData(file) {
     if (!Array.isArray(file) || file.length < 1) {
       return false;
     }
@@ -90,7 +90,7 @@ class InvertedIndex {
    * @returns {object}
    */
   createIndex(name, fileContent) {
-    const readFile = this.checkBookData(fileContent);
+    const readFile = this.readFileData(fileContent);
     if (!readFile) {
       return false;
     }
@@ -163,13 +163,32 @@ class InvertedIndex {
   }
 
   /**
+   * @function takes an array and returns a sanitized version of the array
+   * @param {string} terms
+   * @returns {Array}
+   */
+  sortSearchTerms(searchTerms) {
+    let searchTerm = [];
+    for (let i = 0; i < searchTerms.length; i += 1) {
+      if (Array.isArray(searchTerms[i])) {
+        searchTerm = searchTerm.concat(searchTerms[i]);
+      } else {
+        searchTerm.push(searchTerms[i]);
+      }
+    }
+    searchTerm = searchTerm.join(' ');
+    const terms = this.textToArray(searchTerm);
+    return terms;
+  }
+
+  /**
    * @function takes an array of arguments and returns an array of numbers that
    * represents the index of the words
    * @param {string} terms
    * @returns {Array}
    */
-  searchIndex(searchTerms, name) {
-    const terms = this.convertText(searchTerms);
+  searchIndex(name, ...searchTerms) {
+    const terms = this.sortSearchTerms(searchTerms);
     name = name || 'all';
     let result = [];
     if (name === 'all') {

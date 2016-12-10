@@ -64,28 +64,32 @@
 	    invertedIndex.indexes = {};
 	  });
 	
-	  it('should return the instance of the class', function () {
+	  it('should be truthy for the instance of the class', function () {
 	    var indexInstance = invertedIndex;
-	    expect(indexInstance).toEqual(jasmine.any(Object));
+	    expect(invertedIndex instanceof InvertedIndex).toBeTruthy();
+	  });
+	
+	  it('should return zero for the length of indexes', function () {
+	    var indexInstance = invertedIndex;
 	    expect(Object.keys(invertedIndex.indexes).length).toBe(0);
 	  });
 	
 	  describe('Read book data', function () {
 	    it('should read the content of a json file and return false if the file is empty', function () {
 	      var book = [];
-	      var readBook = invertedIndex.checkBookData(book);
-	      expect(readBook).toBe(false);
+	      var isValid = invertedIndex.readFileData(book);
+	      expect(isValid).toBe(false);
 	    });
 	    it('should read the content of a json file and return true if the file matches the format', function () {
-	      var readBook2 = invertedIndex.checkBookData(books);
-	      expect(readBook2).toBe(true);
+	      var isValid = invertedIndex.readFileData(books);
+	      expect(isValid).toBe(true);
 	    });
 	    it('should return false if the content of the file is not an array of object', function () {
-	      var readBook2 = invertedIndex.checkBookData(badFile);
-	      expect(readBook2).toBe(false);
+	      var isValid = invertedIndex.readFileData(badFile);
+	      expect(isValid).toBe(false);
 	    });
 	    it('should return false if the content of the file is a multi-dimensional array', function () {
-	      var wrongFormat = invertedIndex.checkBookData(deepFile);
+	      var wrongFormat = invertedIndex.readFileData(deepFile);
 	      expect(wrongFormat).toBe(false);
 	    });
 	  });
@@ -145,19 +149,19 @@
 	  describe('Search Index', function () {
 	    it('should return an array containing the index of a word', function () {
 	      invertedIndex.createIndex('books', books);
-	      var searchIndex = invertedIndex.searchIndex('and', 'books');
+	      var searchIndex = invertedIndex.searchIndex('books', 'and');
 	      expect(searchIndex[0].books.and).toEqual([0, 1]);
 	    });
 	    it('should return null for a word not found in the file', function () {
 	      invertedIndex.createIndex('books', books);
-	      var searchIndex = invertedIndex.searchIndex('because', 'books');
+	      var searchIndex = invertedIndex.searchIndex('books', 'because');
 	      expect(searchIndex[0].books.because).toBe(null);
 	    });
 	    it('should return an array of Objects with keys of all the files searched', function () {
 	      invertedIndex.createIndex('books', books);
 	      invertedIndex.createIndex('books1', books1);
 	      var fileList = ['books', 'books1'];
-	      var searchIndex = invertedIndex.searchIndex('and', 'all');
+	      var searchIndex = invertedIndex.searchIndex('all', 'and');
 	      searchIndex.forEach(function (file) {
 	        expect(fileList).toContain(Object.keys(file)[0]);
 	      });
@@ -166,15 +170,23 @@
 	    it('should return null if a word is not found in a file', function () {
 	      invertedIndex.createIndex('books', books);
 	      invertedIndex.createIndex('books1', books1);
-	      var searchIndex = invertedIndex.searchIndex('because', 'all');
+	      var searchIndex = invertedIndex.searchIndex('all', 'because');
 	      expect(searchIndex[0].books.because).toBe(null);
 	      expect(searchIndex[1].books1.because).toBe(null);
+	    });
+	    it('should return search results for a number of arguments', function () {
+	      invertedIndex.createIndex('books', books);
+	      invertedIndex.createIndex('books1', books1);
+	      var searchIndex = invertedIndex.searchIndex('all', 'because', ['angela', 'Nigeria', 'and'], 'alice');
+	      expect(searchIndex[0].books.because).toBe(null);
+	      expect(searchIndex[1].books1.because).toBe(null);
+	      expect(searchIndex[0].books.and).toEqual([0, 1]);
 	    });
 	    it('should return an array containing the indexes of the search parameter in the selected file', function () {
 	      invertedIndex.createIndex('books', books);
 	      invertedIndex.createIndex('books1', books1);
-	      var searchIndex = invertedIndex.searchIndex('and', 'books');
-	      var searchIndex2 = invertedIndex.searchIndex('and', 'books1');
+	      var searchIndex = invertedIndex.searchIndex('books', 'and');
+	      var searchIndex2 = invertedIndex.searchIndex('books1', 'and');
 	      expect(searchIndex[0].books.and).toEqual([0, 1]);
 	      expect(Object.keys(searchIndex[0]).length).toBe(1);
 	      expect(searchIndex2[0].books1.and).toEqual([0, 1]);

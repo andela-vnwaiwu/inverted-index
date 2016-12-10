@@ -21,49 +21,55 @@ angular.module('indexApp', [])
       return false;
     }
 
+    function isJson(file) {
+      if (file && file.name.replace(/\s+/, '').match(/\.json$/i)) {
+        return true;
+      }
+    }
+
+    function validate(file, fileName) {
+      if (file.find(findWrongFormat)) {
+        $scope.$apply(() => {
+          $scope.error = `The .json file did not follow
+          the required format`;
+        });
+        return;
+      } else if ($scope.fileNames.includes(fileName)) {
+        $scope.$apply(() => {
+          $scope.error = 'The file has been uploaded before';
+        });
+        return;
+      } else if (file.length < 1 || Array.isArray(file === false)) {
+        $scope.$apply(() => {
+          $scope.error = 'This file is empty or not an Array of object';
+        });
+        return;
+      }
+      $scope.$apply(() => {
+        $scope.fileNames.push(fileName);
+        $scope.files[fileName] = file;
+        $scope.success = 'The file has been successfully uploaded';
+      });
+    }
+
     $scope.uploadFile = () => {
       $scope.error = '';
       $scope.success = '';
       const file = document.forms['upload-form']['json-file'].files[0];
       const fileName = file.name.replace(/\s+/, '');
-      if (file) {
-        if (!fileName.match(/\.json$/i)) {
-          $scope.error = 'Invalid file format';
-          return;
-        }
+      if (isJson(file)) {
         const reader = new FileReader();
+        reader.readAsBinaryString(file);
         reader.onload = (evt) => {
           try {
             const jsonData = JSON.parse(evt.target.result);
-            if (jsonData.find(findWrongFormat)) {
-              $scope.$apply(() => {
-                $scope.error = `The .json file did not follow
-                the required format`;
-              });
-              return;
-            } else if ($scope.fileNames.includes(fileName)) {
-              $scope.$apply(() => {
-                $scope.error = 'The file has been uploaded before';
-              });
-              return;
-            } else if (jsonData.length < 1 || Array.isArray(jsonData === false)) {
-              $scope.$apply(() => {
-                $scope.error = 'This file is empty or not an Array of object';
-              });
-              return;
-            }
-            $scope.$apply(() => {
-              $scope.fileNames.push(fileName);
-              $scope.files[fileName] = jsonData;
-              $scope.success = 'The file has been successfully uploaded';
-            });
+            validate(jsonData, fileName);
           } catch (error) {
             $scope.$apply(() => {
               $scope.error = 'Invalid .json file';
             });
           }
         };
-        reader.readAsBinaryString(file);
       }
     };
 
@@ -88,13 +94,8 @@ angular.module('indexApp', [])
       if (file === undefined) {
         $scope.success = '';
         $scope.error = 'You are searching an unindexed file';
-      } else if (file === 'all') {
-        $scope.searchResult = index.searchIndex(searchItem, file);
-        $scope.searchTerms = searchItem;
-        $scope.showResult = true;
-        $scope.hideTable = true;
       } else {
-        $scope.searchResult = index.searchIndex(searchItem, file);
+        $scope.searchResult = index.searchIndex(file, searchItem);
         $scope.searchTerms = searchItem;
         $scope.showResult = true;
         $scope.hideTable = true;

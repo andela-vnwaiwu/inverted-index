@@ -3,14 +3,14 @@
 
 # Ignore all except the app folder
 
-/coverage/*
-/build/*
-/node_modules/*
-/jasmine/spec/bundle.js
-/jasmine/spec/bundle.js.map
-/jasmine/lib/**
+coverage/*
+build/*
+node_modules/*
+jasmine/spec/bundle.js
+jasmine/spec/bundle.js.map
+jasmine/lib/**
 karma.conf.js
-/src/libs/*
+src/libs/*
 webpack.config.js
 LICENSE
 README.md
